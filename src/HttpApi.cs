@@ -3,6 +3,8 @@ using System;
 using System.IO;
 using System.Text;
 using System.Net.Http;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Net.Http.Headers;
 using System.Collections.Generic;
@@ -81,6 +83,20 @@ namespace DeluMC.HttpApi
             _client.BaseAddress = new Uri(_baseEndpoint);
         }
 
+        /// <summary>
+        /// When requesting the build area from minecraft, 
+        /// it is specified by two vector values, the lower
+        /// extent and the upper extent,
+        /// </summary>
+        public struct BuildAreaExtents
+        {
+            public int xFrom { get; set; }
+            public int yFrom { get; set; }
+            public int zFrom { get; set; }
+            public int xTo   { get; set; }
+            public int yTo   { get; set; }
+            public int zTo   { get; set; }
+        }
 
         /// <summary>
         /// Retrieve chunk data from minecraft and process it returing a NBTDocument from
@@ -128,6 +144,36 @@ namespace DeluMC.HttpApi
                 _rawMcWorkdData = content;
 
             return document;
+        }
+
+        /// <summary>
+        /// Get extents for the building area specified in minecraft by the "/setbuildarea" command.
+        /// It may throw 404 when no build area has been set so far.
+        /// </summary>
+        /// <returns>
+        ///     Build area extents as they come from minecraft
+        /// </returns>
+        public async Task<BuildAreaExtents> GetBuildArea()
+        {
+            // Set up client expecting a json answer
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json")
+                );
+
+            // request data
+            var ans = await _client.GetAsync($"{_baseEndpoint}{_buildAreaEndpoint}");
+
+            // check if everything went ok
+            if (ans.StatusCode != System.Net.HttpStatusCode.OK)
+                throw new HttpRequestException($"Could not retrieve build area data. Status code: {ans.StatusCode}");
+
+            // parse json as an object
+            var json = await ans.Content.ReadAsStringAsync();
+            
+            var extents = JsonSerializer.Deserialize<BuildAreaExtents>(json);
+
+            return extents;
         }
     }
 }

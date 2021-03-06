@@ -14,9 +14,11 @@ namespace DeluMC
 		static void Main(string[] args)
 		{
 			var api = new HttpApi.HttpApi();
-			var doc = api.GetChunks(new Vector2Int(101, 11), 4, 4);
+			var doc = api.GetBuildArea();
 
-			doc.GetAwaiter().GetResult();
+			var x = doc.GetAwaiter().GetResult();
+
+			Console.WriteLine($"xFrom: {x.xFrom}, yFrom: {x.yFrom},zFrom: {x.zFrom}, xTo: {x.xTo}, yTo: {x.yTo}, zTo: {x.zTo}");
 		}
 	}
 }
