@@ -123,12 +123,12 @@ namespace DeluMC.HttpApi
             // parse into an actual document object
             var document = NbtDocument.LoadDocument(content);
 
+            // back up our data if it is necessary
+            if (_ShouldStoreRawData)
+                _rawMcWorkdData = content;
+
             return document;
         }
-
-
-
-
     }
 }
 

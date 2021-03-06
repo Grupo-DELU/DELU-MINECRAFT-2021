@@ -3,7 +3,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>gdmc_2021_proj</RootNamespace>
+    <RootNamespace>DeluMC</RootNamespace>
+    <AssemblyName>DeluMC</AssemblyName>
+    <StartupObject>DeluMC.Program</StartupObject>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
