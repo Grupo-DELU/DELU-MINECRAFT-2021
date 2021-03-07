@@ -14,11 +14,10 @@ namespace DeluMC
 		static void Main(string[] args)
 		{
 			var api = new HttpApi.HttpApi();
-			var doc = api.GetBuildArea();
+			var doc = api.PutBlocks("~0 ~0 ~0 minecraft:stone\n~0 ~1 ~0 minecraft:stone\n~0 ~2 ~0 minecraft:stone", -7, 10, 5);
 
 			var x = doc.GetAwaiter().GetResult();
-
-			Console.WriteLine($"xFrom: {x.xFrom}, yFrom: {x.yFrom},zFrom: {x.zFrom}, xTo: {x.xTo}, yTo: {x.yTo}, zTo: {x.zTo}");
+			Console.WriteLine(x);
 		}
 	}
 }

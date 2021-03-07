@@ -22,7 +22,10 @@ namespace DeluMC.HttpApi
     /// This class will use HttpClient and Cyotek to request and 
     /// parse data from minecraft. Please try not to use this class by yourself
     /// since you will be coupling your logic to an interface to some external 
-    /// technology
+    /// technology. 
+    /// 
+    /// You can find a reference for the minecraft mod api here: 
+    /// https://github.com/nilsgawlik/gdmc_http_interface#installing-this-mod-with-the-forge-mod-launcher
     /// </summary>
     class HttpApi
     {
@@ -174,6 +177,41 @@ namespace DeluMC.HttpApi
             var extents = JsonSerializer.Deserialize<BuildAreaExtents>(json);
 
             return extents;
+        }
+
+        /// <summary>
+        /// Use this function at your own risk. Try to send a set of blocks
+        /// in a single String with a list of blocks specified as 
+        /// required by the HttpInterface mod in minecraft, but it doesn't checks 
+        /// for correctness of the passed string. 
+        /// Note that every block should be specified in coordinates relative to the given origin
+        /// </summary>
+        /// <param name="blocks"> Blocks to build in the world as required by the mod </param>
+        /// <param name="startX"> Start position's x coordinate </param>
+        /// <param name="startY"> Start position's y coordinate </param>
+        /// <param name="startZ"> Start position's z coordinate </param>
+        /// <returns> Response returned by minecraft in plain text </returns>
+        public async Task<string> PutBlocks(string blocks, int startX = 0, int startZ = 0, int startY = 0)
+        {
+            // reset client
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("text/plain")
+                );
+
+            // Create body to send
+            var stringContent = new StringContent(blocks);
+
+            // Request bulk block edition
+            var uri = $"{_blocksEndpoint}?x={startX}&y={startY}&z={startZ}";
+            var ans = await _client.PutAsync(uri, stringContent);
+
+            // check if everything went ok 
+            if (ans.StatusCode != System.Net.HttpStatusCode.OK)
+                throw new HttpRequestException($"Unable to put blocks in minecraft. Status code: {ans.StatusCode}");
+
+            // read content as String
+            return await ans.Content.ReadAsStringAsync();
         }
     }
 }
