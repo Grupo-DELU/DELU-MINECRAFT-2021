@@ -183,7 +183,7 @@ namespace DeluMC.HttpApi
         /// Use this function at your own risk. Try to send a set of blocks
         /// in a single String with a list of blocks specified as 
         /// required by the HttpInterface mod in minecraft, but it doesn't checks 
-        /// for correctness of the passed string. 
+        /// for correctness of the given string. 
         /// Note that every block should be specified in coordinates relative to the given origin
         /// </summary>
         /// <param name="blocks"> Blocks to build in the world as required by the mod </param>
@@ -191,7 +191,7 @@ namespace DeluMC.HttpApi
         /// <param name="startY"> Start position's y coordinate </param>
         /// <param name="startZ"> Start position's z coordinate </param>
         /// <returns> Response returned by minecraft in plain text </returns>
-        public async Task<string> PutBlocks(string blocks, int startX = 0, int startZ = 0, int startY = 0)
+        public async Task<string> PutBlocks(string blocks, int startX = 0, int startY = 0, int startZ = 0)
         {
             // reset client
             _client.DefaultRequestHeaders.Accept.Clear();
@@ -211,6 +211,70 @@ namespace DeluMC.HttpApi
                 throw new HttpRequestException($"Unable to put blocks in minecraft. Status code: {ans.StatusCode}");
 
             // read content as String
+            return await ans.Content.ReadAsStringAsync();
+        }
+
+        /// <summary>
+        /// <para> Send a command script as a string. Notice that this function doesn't checks for
+        /// correctness in the given string. Every script should have the following format:  </para>
+        ///     
+        ///     <para/> say start\n
+        ///     <para/> [command]\n
+        ///     <para/> [command]\n
+        ///     <para/> [command]\n
+        ///     <para/> say end\n
+        ///
+        ///     <para/> Where every command is a valid minecraft command
+        /// </summary>
+        /// <param name="commands"> Script to send to minecraft </param>
+        /// <returns> Minecraft output after running the script; every line is a command's output </returns>
+        public async Task<string> SendCommands(string commands)
+        {
+            // reset client
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("text/plain")
+                );
+
+            // Content to send
+            var stringContent = new StringContent(commands);
+
+            // Request uri
+            var uri = $"{_commandsEndpoint}";
+            var ans = await _client.PostAsync(uri, stringContent);
+
+            // check if everything went ok
+            if (ans.StatusCode != System.Net.HttpStatusCode.OK)
+                throw new HttpRequestException($"Could not send commands to mc. Status code: {ans.StatusCode}");
+
+            // return string content
+            return await ans.Content.ReadAsStringAsync();
+        }
+
+        /// <summary>
+        /// Get a single block's type. Highly inneficient for bulk operations.
+        /// </summary>
+        /// <param name="posX"> x block coordinate </param>
+        /// <param name="posZ"> y block coordinate </param>
+        /// <param name="posY"> z block coordinate </param>
+        /// <returns> A string with minecraft's response </returns>
+        public async Task<string> GetBlock(int posX, int posZ, int posY)
+        {
+            // clear client
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("text/plain")
+                );
+
+            // Build query string & send the request
+            var uri = $"{_blocksEndpoint}?x={posX}&y={posY}&z={posZ}";
+            var ans = await _client.GetAsync(uri);
+
+            // Check if everything went ok
+            if (!ans.IsSuccessStatusCode)
+                throw new HttpRequestException($"could not retrieve block type at position ({posX}, {posY}, {posZ}). Status code: {ans.StatusCode}");
+
+            // Return block type as string
             return await ans.Content.ReadAsStringAsync();
         }
     }
