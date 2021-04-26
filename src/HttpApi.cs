@@ -130,7 +130,7 @@ namespace DeluMC.HttpApi
 
             // Check if request was ok
             if (ans.StatusCode != System.Net.HttpStatusCode.OK)
-                throw new HttpRequestException($"Couldn't retrieve data from minecrat, status code: {ans.StatusCode}");
+                throw new HttpRequestException($"Couldn't retrieve data from minecraft, status code: {ans.StatusCode}");
 
             // parse content as a byte stream
             var content = await ans.Content.ReadAsStreamAsync();
